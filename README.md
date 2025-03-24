@@ -1,6 +1,6 @@
 # Realtime F-curves.
 
-A blender addon/extension that updates f-curves in the graph editor in realtime as the bone is transformed.
+A blender addon/extension that updates f-curves in the graph editor in realtime as the bone is transformed. It works with Blender 4.4, and probably older versions, but I haven't checked.
 
 
 # Settings
