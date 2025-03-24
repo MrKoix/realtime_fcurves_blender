@@ -8,6 +8,7 @@ A blender addon/extension that updates f-curves in the graph editor in realtime 
 It has two setting.
 
 Interval - is how often the addon checks for changes. You can set it between 1 and 0.01 seconds.
+
 Threshold - how much bone needs to be transformed for it to update graph.
 
 # Purpose of this addon?
