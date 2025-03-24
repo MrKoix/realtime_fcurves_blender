@@ -1,4 +1,5 @@
 import bpy
+from bpy_extras import anim_utils
 
 class RealtimeFCurveUpdater(bpy.types.Operator):
     """Updates F-Curves in real-time when bones are transformed"""
@@ -140,6 +141,11 @@ class RealtimeFCurveUpdater(bpy.types.Operator):
             return
         
         action = obj.animation_data.action
+        action_slot = obj.animation_data.action_slot
+
+    # Retrieve the channel bag for the action slot
+        channelbag = anim_utils.action_get_channelbag_for_slot(action, action_slot)
+
         if not action:
             return
 
@@ -157,7 +163,7 @@ class RealtimeFCurveUpdater(bpy.types.Operator):
             
             for curve_path, count in transform_paths:
                 for index in range(count):
-                    fcurve = action.fcurves.find(f'pose.bones["{pb.name}"].{curve_path}', index=index)
+                    fcurve = channelbag.fcurves.find(f'pose.bones["{pb.name}"].{curve_path}', index=index)
                     if fcurve:
                         current_value = getattr(pb, curve_path)[index]
                         last_value = self._last_transform_values.get((pb.name, curve_path, index), None)
