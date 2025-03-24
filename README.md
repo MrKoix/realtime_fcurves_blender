@@ -7,7 +7,7 @@ A blender addon/extension that updates f-curves in the graph editor in realtime 
 
 It has one setting.
 
-Interval - is how often the addon checks for changes.
+Interval - is how often the addon checks for changes. You can set it between 1 and 0.01 seconds.
 
 # Purpose of this addon?
 
