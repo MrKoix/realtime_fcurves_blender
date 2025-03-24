@@ -3,7 +3,7 @@
 A blender addon/extension that updates f-curves in the graph editor in realtime as the bone is transformed.
 
 
-#Settings
+# Settings
 
 It has one setting.
 
