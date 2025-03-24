@@ -162,29 +162,31 @@ class RealtimeFCurveUpdater(bpy.types.Operator):
                         current_value = getattr(pb, curve_path)[index]
                         last_value = self._last_transform_values.get((pb.name, curve_path, index), None)
 
-                        # Insert or update the keyframe
-                        keyframe = fcurve.keyframe_points.insert(context.scene.frame_current, current_value, options={'FAST'})
-                        self._last_transform_values[(pb.name, curve_path, index)] = current_value
+                        # Only update if the value has changed significantly
+                        if last_value is None or abs(current_value - last_value) > context.scene.realtime_fcurve_update_threshold:
+                            # Insert or update the keyframe
+                            keyframe = fcurve.keyframe_points.insert(context.scene.frame_current, current_value, options={'FAST'})
+                            self._last_transform_values[(pb.name, curve_path, index)] = current_value
 
-                        # Update handles for the current keyframe and its immediate neighbors
-                        current_frame = context.scene.frame_current
-                        keyframes_to_update = []
+                            # Update handles for the current keyframe and its immediate neighbors
+                            current_frame = context.scene.frame_current
+                            keyframes_to_update = []
 
-                        # Find the current keyframe and its neighbors
-                        for kf in fcurve.keyframe_points:
-                            if kf.co.x == current_frame:
-                                keyframes_to_update.append(kf)
-                            elif kf.co.x == current_frame - 1:  # Previous keyframe
-                                keyframes_to_update.append(kf)
-                            elif kf.co.x == current_frame + 1:  # Next keyframe
-                                keyframes_to_update.append(kf)
+                            # Find the current keyframe and its neighbors
+                            for kf in fcurve.keyframe_points:
+                                if kf.co.x == current_frame:
+                                    keyframes_to_update.append(kf)
+                                elif kf.co.x == current_frame - 1:  # Previous keyframe
+                                    keyframes_to_update.append(kf)
+                                elif kf.co.x == current_frame + 1:  # Next keyframe
+                                    keyframes_to_update.append(kf)
 
-                        # Update handles for the selected keyframes
-                        for kf in keyframes_to_update:
-                            if kf.handle_left_type == 'AUTO_CLAMPED' or kf.handle_right_type == 'AUTO_CLAMPED':
-                                kf.handle_left_type = 'AUTO_CLAMPED'
-                                kf.handle_right_type = 'AUTO_CLAMPED'
-                                fcurve.update()  # Force update the handles
+                            # Update handles for the selected keyframes
+                            for kf in keyframes_to_update:
+                                if kf.handle_left_type == 'AUTO_CLAMPED' or kf.handle_right_type == 'AUTO_CLAMPED':
+                                    kf.handle_left_type = 'AUTO_CLAMPED'
+                                    kf.handle_right_type = 'AUTO_CLAMPED'
+                                    fcurve.update()  # Force update the handles
 
         # Throttle UI updates
         if context.scene.frame_current % 5 == 0:  # Only redraw every 5 frames
@@ -216,6 +218,9 @@ class RealtimeFCurvePanel(bpy.types.Panel):
         # Timer interval setting
         layout.prop(scene, "realtime_fcurve_timer_interval", text="Interval (s)") 
 
+        # Update threshold setting
+        layout.prop(scene, "realtime_fcurve_update_threshold", text="Threshold (m)")
+
 def register():
     bpy.utils.register_class(RealtimeFCurveUpdater)
     bpy.utils.register_class(RealtimeFCurvePanel)
@@ -227,12 +232,20 @@ def register():
         min=0.01,
         max=1.0
     )
+    bpy.types.Scene.realtime_fcurve_update_threshold = bpy.props.FloatProperty(
+        name="Update Threshold",
+        description="Minimum change required to update keyframes",
+        default=0.0001,
+        min=0.000001,
+        max=1.0
+    )
 
 def unregister():
     bpy.utils.unregister_class(RealtimeFCurveUpdater)
     bpy.utils.unregister_class(RealtimeFCurvePanel)
     del bpy.types.Scene.realtime_fcurve_active
     del bpy.types.Scene.realtime_fcurve_timer_interval
+    del bpy.types.Scene.realtime_fcurve_update_threshold
 
 if __name__ == "__main__":
     register()
